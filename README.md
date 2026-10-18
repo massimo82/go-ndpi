@@ -1,5 +1,7 @@
 # go-ndpi
 
+[![Test](https://github.com/massimo82/go-ndpi/actions/workflows/test.yml/badge.svg)](https://github.com/massimo82/go-ndpi/actions/workflows/test.yml)
+
 ## 1. Introduction
 This project is a [nDPI](https://github.com/ntop/nDPI) wrapper by golang based on CGO. You can use nDPI by golang to do packet inspection.
 
