@@ -21,7 +21,7 @@ jobs:
         go: [go.mod, stable]
     name: Test (Go ${{ matrix.go }})
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install dependencies
         run: |
@@ -32,7 +32,7 @@ jobs:
 
       - name: Cache nDPI
         id: cache-ndpi
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ env.NDPI_PREFIX }}
           key: ndpi-${{ env.NDPI_VERSION }}-ubuntu-24.04
@@ -52,7 +52,7 @@ jobs:
           echo "CGO_CFLAGS=-I${NDPI_PREFIX}/include" >> "${GITHUB_ENV}"
           echo "CGO_LDFLAGS=-L${NDPI_PREFIX}/lib" >> "${GITHUB_ENV}"
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version: ${{ matrix.go != 'go.mod' && matrix.go || '' }}
           go-version-file: ${{ matrix.go == 'go.mod' && 'go.mod' || '' }}
