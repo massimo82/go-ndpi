@@ -15,8 +15,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/fs714/go-ndpi/gondpi"
-	"github.com/fs714/go-ndpi/gondpi/types"
+	"github.com/massimo82/go-ndpi/gondpi"
+	"github.com/massimo82/go-ndpi/gondpi/types"
 )
 
 func main() {

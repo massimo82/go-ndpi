@@ -14,8 +14,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/fs714/go-ndpi/gondpi"
-	"github.com/fs714/go-ndpi/gondpi/types"
+	"github.com/massimo82/go-ndpi/gondpi"
+	"github.com/massimo82/go-ndpi/gondpi/types"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"

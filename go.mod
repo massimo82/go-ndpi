@@ -1,4 +1,4 @@
-module github.com/fs714/go-ndpi
+module github.com/massimo82/go-ndpi
 
 go 1.19
 
