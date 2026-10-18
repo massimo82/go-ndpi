@@ -1,6 +1,6 @@
 /*
 Example of simple uage:
-- Packet Capture by libpcap
+- Packet Capture by libpcap, from a live interface (-i) or a pcap file (-f)
 - Packet L2 - L4 inspection by gopacket
 - Packet L7 inspection by nDPI
 - Golang map for flow recording
@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"sync"
 
 	"github.com/google/gopacket"
@@ -131,19 +132,36 @@ func (s *IfaceStats) GetFlow(fp FlowFingerprint) *FlowInfo {
 
 func main() {
 	var ifaceName string
+	var pcapFile string
 	var enableGuess bool
 	flag.StringVar(&ifaceName, "i", "", "interface name")
+	flag.StringVar(&pcapFile, "f", "", "pcap file to read instead of a live interface")
 	flag.BoolVar(&enableGuess, "g", true, "enable protocol guess or not")
 	flag.Parse()
+
+	if (ifaceName == "") == (pcapFile == "") {
+		fmt.Println("one of -i <interface> or -f <pcap file> is required")
+		return
+	}
 
 	Stats := IfaceStats{
 		FlowMap: map[FlowFingerprint]*FlowInfo{},
 	}
 
-	handle, err := pcap.OpenLive(ifaceName, 65535, true, pcap.BlockForever)
-	if err != nil {
-		fmt.Printf("failed to open live interface %s with err: %s\n", ifaceName, err.Error())
-		return
+	var handle *pcap.Handle
+	var err error
+	if pcapFile != "" {
+		handle, err = pcap.OpenOffline(pcapFile)
+		if err != nil {
+			fmt.Printf("failed to open pcap file %s with err: %s\n", pcapFile, err.Error())
+			return
+		}
+	} else {
+		handle, err = pcap.OpenLive(ifaceName, 65535, true, pcap.BlockForever)
+		if err != nil {
+			fmt.Printf("failed to open live interface %s with err: %s\n", ifaceName, err.Error())
+			return
+		}
 	}
 
 	err = handle.SetBPFFilter("")
@@ -184,6 +202,9 @@ func main() {
 	udp := &layers.UDP{}
 	payload := &gopacket.Payload{}
 	parser := gopacket.NewDecodingLayerParser(layers.LayerTypeEthernet, eth, ip4, tcp, udp, payload)
+	// gopacket guesses application layers (e.g. TLS on port 443) which have no decoder here:
+	// ignore them, nDPI inspects the payload
+	parser.IgnoreUnsupported = true
 	decoded := make([]gopacket.LayerType, 0, 4)
 
 	var data []byte
@@ -197,6 +218,9 @@ func main() {
 	var isGuessed bool
 	for {
 		data, ci, err = handle.ZeroCopyReadPacketData()
+		if err == io.EOF {
+			break
+		}
 		if err != nil {
 			fmt.Printf("error getting packet: %s\n", err.Error())
 			continue

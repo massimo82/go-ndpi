@@ -48,6 +48,11 @@ go get github.com/massimo82/go-ndpi/v6@v6.0.0
 ```
 
 There is a simple usage in in folder `example` which could be a good start.
+`example01` reads packets from a live interface or from a pcap file:
+```
+go run ./example01 -i eth0
+go run ./example01 -f capture.pcap
+```
 
 Since nDPI 4.10 the detection module has a two-step initialization: configuration and custom files
 must be applied before the module is finalized.
