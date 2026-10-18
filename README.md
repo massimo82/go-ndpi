@@ -70,8 +70,11 @@ err = dm.Finalize()
 You can see follow codes in `ndpi.go`
 - Linux lib path is `/usr/include/`, you can adapt it according to your ENV
 - Lib ndpi is static link while others are dynamic link
+  - The wrapper accesses nDPI structs directly, so linking it statically guarantees that headers and library match
+  - Maxminddb is required by `libndpi` built with `--with-maxminddb` (as the apt one). It is dynamic linked, since some
+    distributions (e.g. Arch/Manjaro) do not ship `libmaxminddb.a`: `libmaxminddb.so` is needed at runtime
 
 ```
 #cgo CFLAGS: -I/usr/include/
-#cgo LDFLAGS: -Wl,-Bstatic -lndpi -lmaxminddb -Wl,-Bdynamic -lpcap -lm -ldl -pthread
+#cgo LDFLAGS: -Wl,-Bstatic -lndpi -Wl,-Bdynamic -lmaxminddb -lpcap -lm -ldl -pthread
 ```

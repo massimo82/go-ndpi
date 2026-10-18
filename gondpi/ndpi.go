@@ -6,7 +6,7 @@ package gondpi
 
 /*
 #cgo CFLAGS: -I/usr/include/
-#cgo LDFLAGS: -Wl,-Bstatic -lndpi -lmaxminddb -Wl,-Bdynamic -lpcap -lm -ldl -pthread
+#cgo LDFLAGS: -Wl,-Bstatic -lndpi -Wl,-Bdynamic -lmaxminddb -lpcap -lm -ldl -pthread
 #include "ndpi_linux.h"
 */
 import "C"
