@@ -83,3 +83,11 @@ You can see follow codes in `ndpi.go`
 #cgo CFLAGS: -I/usr/include/
 #cgo LDFLAGS: -Wl,-Bstatic -lndpi -Wl,-Bdynamic -lmaxminddb -lpcap -lm -ldl -pthread
 ```
+
+### 2.5 Tests
+Tests classify the pcaps of nDPI test suite in `gondpi/testdata/ndpi` and compare every TCP/UDP flow with
+the results of `ndpiReader`:
+```
+go test ./...
+```
+See `gondpi/testdata/ndpi/README.md` to run them against the whole nDPI test suite.
