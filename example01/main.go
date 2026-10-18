@@ -156,13 +156,27 @@ func main() {
 
 	detectionBitmask := gondpi.NewNdpiProtocolBitmask()
 	detectionBitmask = gondpi.NdpiProtocolBitmaskSetAll(detectionBitmask)
-	ndpiDM, err := gondpi.NdpiDetectionModuleInitialize(types.NDPI_NO_PREFS, detectionBitmask)
+	ndpiDM, err := gondpi.NewNdpiDetectionModule(types.NDPI_LICENSE_NOT_FOR_PROFIT_LGPL, detectionBitmask)
 	if err != nil {
 		fmt.Printf("failed to initialize ndpi detection module with err: %s\n", err.Error())
 		return
 	}
 
 	defer ndpiDM.Close()
+
+	if !enableGuess {
+		err = ndpiDM.SetConfig("", "dpi.guess_on_giveup", "0")
+		if err != nil {
+			fmt.Printf("failed to disable protocol guess with err: %s\n", err.Error())
+			return
+		}
+	}
+
+	err = ndpiDM.Finalize()
+	if err != nil {
+		fmt.Printf("failed to finalize ndpi detection module with err: %s\n", err.Error())
+		return
+	}
 
 	eth := &layers.Ethernet{}
 	ip4 := &layers.IPv4{}
@@ -243,33 +257,31 @@ func main() {
 
 					extraDissectionPossible := ndpiDM.IsExtraDissectionPossible(flowInfo.NdpiFlow)
 
-					if enoughPackets || ndpiProto.AppProtocolId != types.NDPI_PROTOCOL_UNKNOWN {
-						if !enoughPackets && extraDissectionPossible {
-
-						} else {
-							if enableGuess && ndpiProto.AppProtocolId == types.NDPI_PROTOCOL_UNKNOWN {
-								ndpiProto, isGuessed = ndpiDM.DetectionGiveup(flowInfo.NdpiFlow, enableGuess)
-								flowInfo.NdpiIsGuessed = isGuessed
-							}
-
-							flowInfo.NdpiDetectionCompleted = true
-
-							fmt.Println("------")
-							masterProto := ndpiProto.MasterProtocolId.ToName()
-							appProto := ndpiProto.AppProtocolId.ToName()
-							category := ndpiProto.CategoryId.ToName()
-
-							fmt.Printf("Master Protocol: %s, App Protocol: %s, Category: %s\n", masterProto, appProto, category)
-
-							fpString := fp.ToString()
-							flowInfoJson, _ := json.MarshalIndent(flowInfo, "", "  ")
-							ndpiFlowInfoString := flowInfo.NdpiFlow.ToNdpiFlowInfo().ToString()
-							fmt.Println(fpString)
-							fmt.Println(string(flowInfoJson))
-							fmt.Println(ndpiFlowInfoString)
-
-							flowInfo.NdpiFlow.Close()
+					// NDPI_STATE_CLASSIFIED means the protocol is known, but nDPI may still
+					// want more packets to extract metadata (extra dissection)
+					if enoughPackets || (ndpiProto.State == types.NDPI_STATE_CLASSIFIED && !extraDissectionPossible) {
+						if ndpiProto.State != types.NDPI_STATE_CLASSIFIED {
+							ndpiProto, isGuessed = ndpiDM.DetectionGiveup(flowInfo.NdpiFlow)
+							flowInfo.NdpiIsGuessed = isGuessed
 						}
+
+						flowInfo.NdpiDetectionCompleted = true
+
+						fmt.Println("------")
+						masterProto := ndpiProto.MasterProtocolId.ToName()
+						appProto := ndpiProto.AppProtocolId.ToName()
+						category := ndpiProto.CategoryId.ToName()
+
+						fmt.Printf("Master Protocol: %s, App Protocol: %s, Category: %s\n", masterProto, appProto, category)
+
+						fpString := fp.ToString()
+						flowInfoJson, _ := json.MarshalIndent(flowInfo, "", "  ")
+						ndpiFlowInfoString := flowInfo.NdpiFlow.ToNdpiFlowInfo().ToString()
+						fmt.Println(fpString)
+						fmt.Println(string(flowInfoJson))
+						fmt.Println(ndpiFlowInfoString)
+
+						flowInfo.NdpiFlow.Close()
 					}
 				}
 
