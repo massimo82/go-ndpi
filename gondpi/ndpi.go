@@ -17,7 +17,7 @@ import (
 	"sync"
 	"unsafe"
 
-	"github.com/massimo82/go-ndpi/gondpi/types"
+	"github.com/massimo82/go-ndpi/v6/gondpi/types"
 	"github.com/pkg/errors"
 )
 

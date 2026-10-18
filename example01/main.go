@@ -14,11 +14,11 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/massimo82/go-ndpi/gondpi"
-	"github.com/massimo82/go-ndpi/gondpi/types"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
+	"github.com/massimo82/go-ndpi/v6/gondpi"
+	"github.com/massimo82/go-ndpi/v6/gondpi/types"
 )
 
 const (

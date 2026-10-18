@@ -42,6 +42,11 @@ cd nDPI && ./autogen.sh && ./configure --with-maxminddb && make && make install
 ```
 
 ### 2.2 Use this lib
+Module major version follows the nDPI release it wraps:
+```
+go get github.com/massimo82/go-ndpi/v6@v6.0.0
+```
+
 There is a simple usage in in folder `example` which could be a good start.
 
 Since nDPI 4.10 the detection module has a two-step initialization: configuration and custom files

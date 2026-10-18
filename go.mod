@@ -1,4 +1,4 @@
-module github.com/massimo82/go-ndpi
+module github.com/massimo82/go-ndpi/v6
 
 go 1.19
 
