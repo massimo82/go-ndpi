@@ -1,0 +1,64 @@
+name: nDPI release check
+
+# Open an issue when nDPI publishes a release newer than the one supported (NDPI_VERSION in test.yml)
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Compare with latest nDPI release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          current=$(sed -nE 's/^\s*NDPI_VERSION:\s*"?([0-9.]+)"?\s*$/\1/p' .github/workflows/test.yml)
+          if [ -z "${current}" ]; then
+            echo "::error::NDPI_VERSION not found in .github/workflows/test.yml"
+            exit 1
+          fi
+
+          latest=$(gh api repos/ntop/nDPI/releases/latest --jq .tag_name)
+          echo "Supported nDPI: ${current}, latest nDPI release: ${latest}"
+
+          newest=$(printf '%s\n%s\n' "${current}" "${latest}" | sort -V | tail -n 1)
+          if [ "${latest}" = "${current}" ] || [ "${newest}" != "${latest}" ]; then
+            echo "go-ndpi is aligned with the latest nDPI release"
+            exit 0
+          fi
+
+          title="Update to nDPI ${latest}"
+          existing=$(gh issue list --repo "${GITHUB_REPOSITORY}" --state all --search "\"${title}\" in:title" --json title --jq ".[] | select(.title == \"${title}\") | .title")
+          if [ -n "${existing}" ]; then
+            echo "Issue \"${title}\" already exists"
+            exit 0
+          fi
+
+          major=${latest%%.*}
+          current_major=${current%%.*}
+          if [ "${major}" != "${current_major}" ]; then
+            major_step="- [ ] New major: change module path to \`github.com/${GITHUB_REPOSITORY}/v${major}\` and all imports"
+          else
+            major_step="- [ ] Same major: module path stays \`/v${major}\`"
+          fi
+
+          gh issue create --repo "${GITHUB_REPOSITORY}" --title "${title}" --body "$(cat <<EOF
+          nDPI [${latest}](https://github.com/ntop/nDPI/releases/tag/${latest}) has been released, go-ndpi supports nDPI ${current}.
+
+          Release go-ndpi \`v${latest}.0\`, following the versioning rule in README:
+          - [ ] Update the wrapper to the nDPI ${latest} API and regenerate types from its headers
+          - [ ] Update \`NDPI_VERSION\` in \`.github/workflows/test.yml\`
+          - [ ] Update nDPI version in README and \`gondpi/ndpi.go\`
+          - [ ] Update pcaps and expected results in \`gondpi/testdata/ndpi\` from nDPI ${latest} test suite
+          ${major_step}
+          - [ ] Tag \`v${latest}.0\` and create the release \`v${latest}.0 – nDPI ${latest}\`
+          EOF
+          )"

@@ -44,9 +44,9 @@ cd nDPI && ./autogen.sh && ./configure --with-maxminddb && make && make install
 ```
 
 ### 2.2 Use this lib
-Module major version follows the nDPI release it wraps:
+Install the latest release (see [Versioning](#26-versioning) to pick the one matching your nDPI):
 ```
-go get github.com/massimo82/go-ndpi/v6@v6.0.0
+go get github.com/massimo82/go-ndpi/v6@latest
 ```
 
 There is a simple usage in in folder `example` which could be a good start.
@@ -98,3 +98,16 @@ the results of `ndpiReader`:
 go test ./...
 ```
 See `gondpi/testdata/ndpi/README.md` to run them against the whole nDPI test suite.
+
+### 2.6 Versioning
+Releases are aligned with the nDPI release they wrap: go-ndpi `vX.Y.Z` supports nDPI `X.Y`.
+- `X.Y` is the nDPI release, e.g. `v6.0.Z` supports nDPI 6.0
+- `Z` counts fixes and improvements of the wrapper only, on the same nDPI release
+- A new nDPI major release changes the module path too, as required by Go modules: nDPI 7.0 will be
+  `github.com/massimo82/go-ndpi/v7`
+
+| go-ndpi | nDPI |
+|---------|------|
+| v6.0.x  | 6.0  |
+
+A weekly GitHub Action opens an issue when nDPI publishes a newer release.
